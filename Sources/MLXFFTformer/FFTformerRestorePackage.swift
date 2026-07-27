@@ -41,21 +41,28 @@ public final class FFTformerRestorePackage: ModelPackage {
             license: LicenseDeclaration(weightLicense: .mit, portCodeLicense: .mit),
             provenance: Provenance(sourceRepo: "kkkls/FFTformer", revision: "main", tier: 1),
             requirements: RequirementsManifest(
-                // Split footprint (engine 1.14), from `fftformer-gate --bench` process
-                // `phys_footprint` (NOT MLX-peak — that under-reads the admission basis).
-                //   • post-load floor : 0.08 GB → resident declared 120 MB with headroom
-                //     (16.56 M params @ fp32 = 66.2 MB + runtime/Metal overhead)
-                //   • 1080p, TILED at the 256 default : 8.07 GB phys → activation 8.0 GB
-                // Unlike NAFNet this package tiles internally, so the peak is one-tile-sized and
-                // roughly FLAT in input resolution rather than linear — a 4K frame runs more tiles,
-                // not a bigger one. Declared at the 1080p figure, which is the measured worst case.
-                // ⚠️ FLAGGED: CLI numbers. Replace with an in-app `phys_footprint` run before this
-                // package is marked validated — under-declaring falsely admits on tight Macs, the
-                // BiRefNet-best failure mode.
+                // Split footprint (engine 1.14) — ✅ MEASURED through the REAL `MLXServeEngine` via
+                // `MLXEngineTestKit.ValidationHarness` (`swift run fftformer-validate`), which is the
+                // same code path and the same process-`phys_footprint` metric the archived validation
+                // app used: 150 ms sampling, floor read post-load/pre-run.
+                //
+                //   [fftformer-gopro] SPLIT floor=0.10GB peak=5.80GB act=5.70GB retain=0.33GB
+                //                     engine=0.12GB reserve=8.00GB load=0.0s run=34.6s   @1920x1080
+                //
+                // Declared with margin above measured: resident 150 MB (floor 98.8 MB) and activation
+                // 6.5 GB (measured 5.70 GB). Margin is deliberate — a CLI process carries no
+                // AppKit/Metal-view overhead, so absolute floor/peak sit a few hundred MB below a GUI
+                // app's, which is conservative in the WRONG direction for admission.
+                //
+                // Because tiling is internal the peak is one-tile-sized and roughly FLAT in input
+                // resolution — a 4K frame runs more tiles, not a bigger one.
+                //
+                // NOTE `retain=0.33GB`: the live model holds intermediates after run+clearCache. That
+                // belongs in the transient (where it is), not residency.
                 footprints: [
                     QuantFootprint(quant: .fp32,
-                                   residentBytes: 120_000_000,
-                                   peakActivationBytes: 8_000_000_000),
+                                   residentBytes: 150_000_000,
+                                   peakActivationBytes: 6_500_000_000),
                 ],
                 requiredBackends: [.metalGPU],
                 os: OSRequirement(minMacOS: SemanticVersion(major: 26, minor: 0, patch: 0)),

@@ -21,9 +21,13 @@ let package = Package(
         .library(name: "FFTformerMLXCore", targets: ["FFTformerMLXCore"]),
         .library(name: "MLXFFTformer", targets: ["MLXFFTformer"]),
         .executable(name: "fftformer-gate", targets: ["FFTformerGate"]),
+        .executable(name: "fftformer-validate", targets: ["FFTformerValidate"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/xocialize/mlx-engine-swift", from: "0.36.0"),
+        // 0.38.0 = contract 1.29.0, and the first tag carrying `licenseEnforcement`
+        // (contract 1.28.0 / v0.37.0), which the validate target sets to `.blocking` to match
+        // how Forge constructs the engine in production.
+        .package(url: "https://github.com/xocialize/mlx-engine-swift", from: "0.38.0"),
         .package(url: "https://github.com/ml-explore/mlx-swift", from: "0.30.0"),
         .package(url: "https://github.com/huggingface/swift-transformers", from: "1.1.6"),
         .package(url: "https://github.com/xocialize/mlx-profiling.git", from: "0.1.0"),
@@ -62,6 +66,22 @@ let package = Package(
             resources: [
                 .copy("Resources/goldens"),
             ]
+        ),
+        // Drives the package through the REAL MLXServeEngine and reports the authoritative split
+        // footprint via MLXEngineTestKit — same harness and same phys_footprint metric the archived
+        // validation app used. The gate's `--bench` reads MLX-pool memory, which under-reads the
+        // admission basis by ~2.7x (the BiRefNet re-baseline).
+        .executableTarget(
+            name: "FFTformerValidate",
+            dependencies: [
+                "MLXFFTformer",
+                .product(name: "MLX", package: "mlx-swift"),
+                .product(name: "MLXToolKit", package: "mlx-engine-swift"),
+                .product(name: "MLXServeCore", package: "mlx-engine-swift"),
+                .product(name: "MLXEngineTestKit", package: "mlx-engine-swift"),
+            ],
+            path: "Sources/Validate",
+            swiftSettings: [.swiftLanguageMode(.v5)]
         ),
         // Parity gates that need a real Metal context live HERE, not in the test target — the SPM
         // test product's metallib is unreliable (see mlx-swift-integration/swift-port-parity.md).
