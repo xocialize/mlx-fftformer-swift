@@ -1,0 +1,45 @@
+FFTformer PyTorch goldens — fp32, CPU, PyTorch NCHW layout, C-contiguous.
+checkpoint: upstream/pretrain_model/fftformer_GoPro.pth
+constructor: fftformer()  (all defaults; dim=48, num_blocks=[6,6,12,8],
+             num_refinement_blocks=4, ffn_expansion_factor=3, bias=False)
+input contract: RGB [0,1], pad to multiple of 32 (reflect, bottom/right), crop back.
+
+ln_withbias_in.npy                             (1, 48, 32, 32)          min=-4.033996 max=+4.223512 mean=+0.005553
+ln_withbias_out.npy                            (1, 48, 32, 32)          min=-2.179062 max=+2.113627 mean=-0.003126
+ln_withbias_w.npy                              (48,)                    min=-0.001092 max=+0.696813 mean=+0.229868
+ln_withbias_b.npy                              (48,)                    min=-0.563327 max=+0.438894 mean=-0.003494
+patch_in.npy                                   (1, 16, 32, 32)          min=-3.938684 max=+3.626589 mean=-0.003078
+patch_out.npy                                  (1, 16, 4, 4, 8, 8)      min=-3.938684 max=+3.626589 mean=-0.003078
+patch_roundtrip.npy                            (1, 16, 32, 32)          min=-3.938684 max=+3.626589 mean=-0.003078
+fftcore_in.npy                                 (1, 16, 4, 4, 8, 8)      min=-4.337695 max=+3.878934 mean=-0.002614
+fftcore_mask.npy                               (16, 1, 1, 8, 5)         min=-3.232077 max=+3.065933 mean=-0.025805
+fftcore_spec_real.npy                          (1, 16, 4, 4, 8, 5)      min=-30.191967 max=+23.604084 mean=-0.041455
+fftcore_spec_imag.npy                          (1, 16, 4, 4, 8, 5)      min=-20.494900 max=+22.706554 mean=+0.000666
+fftcore_out.npy                                (1, 16, 4, 4, 8, 8)      min=-3.743038 max=+4.306621 mean=+0.002618
+fsascore_q.npy                                 (1, 16, 4, 4, 8, 8)      min=-3.637705 max=+3.847171 mean=+0.000669
+fsascore_k.npy                                 (1, 16, 4, 4, 8, 8)      min=-3.925082 max=+3.666635 mean=-0.008336
+fsascore_prod_real.npy                         (1, 16, 4, 4, 8, 5)      min=-370.362915 max=+366.563843 mean=-0.097682
+fsascore_prod_imag.npy                         (1, 16, 4, 4, 8, 5)      min=-356.135681 max=+356.135681 mean=+0.321717
+fsascore_out.npy                               (1, 16, 4, 4, 8, 8)      min=-33.247223 max=+28.870422 mean=+0.058914
+dffn_in.npy                                    (1, 48, 32, 32)          min=-4.240880 max=+4.921378 mean=-0.005909
+dffn_out.npy                                   (1, 48, 32, 32)          min=-69.050659 max=+52.822315 mean=-0.142847
+fsas_in.npy                                    (1, 48, 32, 32)          min=-4.298694 max=+4.161368 mean=+0.003758
+fsas_out.npy                                   (1, 48, 32, 32)          min=-61.116028 max=+72.011963 mean=-0.000515
+tblock_in.npy                                  (1, 48, 32, 32)          min=-4.710310 max=+4.331175 mean=-0.001587
+tblock_noatt_out.npy                           (1, 48, 32, 32)          min=-12.807813 max=+9.395500 mean=-0.032648
+tblock_att_out.npy                             (1, 48, 32, 32)          min=-59.413994 max=+63.066158 mean=+0.192906
+down_in.npy                                    (1, 48, 32, 32)          min=-4.148280 max=+4.100110 mean=+0.007096
+down_out.npy                                   (1, 96, 16, 16)          min=-12.206336 max=+12.153736 mean=-0.038342
+up_in.npy                                      (1, 192, 16, 16)         min=-4.280638 max=+4.065059 mean=+0.002884
+up_out.npy                                     (1, 96, 32, 32)          min=-15.136935 max=+16.545414 mean=+0.009822
+fuse_a.npy                                     (1, 96, 32, 32)          min=-4.184245 max=+4.319139 mean=-0.002724
+fuse_b.npy                                     (1, 96, 32, 32)          min=-4.273921 max=+4.198081 mean=+0.001878
+fuse_out.npy                                   (1, 96, 32, 32)          min=-1320.306641 max=+2376.358643 mean=+0.414673
+full_64_in.npy                                 (1, 3, 64, 64)           min=+0.000106 max=+0.999947 mean=+0.494423
+full_64_out.npy                                (1, 3, 64, 64)           min=-2.645662 max=+3.487995 mean=+0.448664
+full_128_in.npy                                (1, 3, 128, 128)         min=+0.000059 max=+0.999986 mean=+0.502483
+full_128_out.npy                               (1, 3, 128, 128)         min=-3.301989 max=+3.449105 mean=+0.484434
+full_256_in.npy                                (1, 3, 256, 256)         min=+0.000011 max=+0.999995 mean=+0.500475
+full_256_out.npy                               (1, 3, 256, 256)         min=-5.114947 max=+4.340795 mean=+0.469437
+full_img256_in.npy                             (1, 3, 256, 256)         min=+0.022147 max=+0.972359 mean=+0.497935
+full_img256_out.npy                            (1, 3, 256, 256)         min=-12.260443 max=+6.477584 mean=+0.457691

@@ -1,0 +1,23 @@
+mlx-fftformer-swift
+===================
+
+Port code: MIT (this repository).
+
+Upstream model and weights
+--------------------------
+FFTformer — https://github.com/kkkls/FFTformer
+Kong et al., "Efficient Frequency Domain-based Transformers for High-Quality
+Image Deblurring", CVPR 2023.
+
+License: MIT, Copyright (c) 2023 kkkls. See LICENSE-upstream.
+
+The upstream repository commits its pretrained weights in-repo
+(`pretrain_model/fftformer_GoPro.pth`) under that same MIT license — there is no
+separate weights statement to interpret, which is the favourable case.
+
+Converted weights are redistributed as:
+  https://huggingface.co/mlx-community/FFTformer-GoPro-fp32
+
+The upstream repository vendors a copy of BasicSR (Apache-2.0) as its training
+framework. This port depends on NONE of it: only the ~300-line architecture file
+was read, and no upstream code is vendored here.

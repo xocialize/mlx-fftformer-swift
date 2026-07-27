@@ -1,0 +1,14 @@
+.DS_Store
+.build/
+.swiftpm/
+*.xcuserdatad
+xcuserdata/
+
+# Oracle working tree — all regenerable, see PORT-STATUS.md "Reproduce".
+oracle/upstream/
+oracle/.venv/
+oracle/converted/
+oracle/goldens/
+oracle/__pycache__/
+
+# NOTE: Tests/FFTformerMLXTests/Resources/goldens/ IS committed — those are the parity fixtures.
