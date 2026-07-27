@@ -7,7 +7,10 @@ xcuserdata/
 # Oracle working tree — all regenerable, see PORT-STATUS.md "Reproduce".
 oracle/upstream/
 oracle/.venv/
-oracle/hf*/          # any Hugging Face download cache (hf/, hf-cache/, hf-rt/, hf-roundtrip/)
+# Any Hugging Face download cache (hf/, hf-cache/, hf-rt/, hf-roundtrip/).
+# NOTE: the comment MUST be on its own line — '#' only starts a comment at the START of a
+# line, so a trailing one made this pattern literal and it matched nothing.
+oracle/hf*/
 oracle/converted/
 oracle/goldens/
 oracle/__pycache__/
