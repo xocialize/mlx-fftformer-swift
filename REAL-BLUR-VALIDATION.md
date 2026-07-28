@@ -10,6 +10,42 @@ model helps real footage. These are separate questions and this doc is about the
 
 ---
 
+> # 🔴 ANSWERED 2026-07-27, and the answer is bad for this package
+>
+> The own-device shoot below was never needed to settle the headline question. **RealBlur** (CC BY
+> 4.0, beam-splitter rig, real optical blur) was already public and licence-clean, and a first pass
+> on 300 of its 980 official test pairs — using the authors' own ECC-alignment protocol — says:
+>
+> | model | RealBlur-J PSNR | vs. doing nothing |
+> |---|---|---|
+> | *blurred input* | *27.55* | — |
+> | Restormer motionDeblur (GoPro-trained) | **28.84** | **+1.29** |
+> | **FFTformer GoPro — this package** | 27.52 | **−0.02** |
+>
+> **This package's checkpoint does not beat leaving the image alone.** Parity is immaculate and
+> irrelevant: the model was ported correctly and still does not help.
+>
+> 🔑 **But "Deblurring in the Wild"'s explanation is too coarse.** It blames *GoPro training*.
+> Restormer is **also GoPro-trained** and transfers fine (+1.29 dB), so the mechanism is the model,
+> not the training set. Worse, the ranking **inverts**: FFTformer beats Restormer by 1.29 dB on GoPro
+> (34.21 vs 32.92) and loses to it by 1.32 dB on real blur.
+>
+> **Consequences:**
+> 1. Restormer motionDeblur — already shipped in `mlx-restormer-swift` — should be the default deblur
+>    route, not this package.
+> 2. Upstream publishes a **RealBlur-trained** FFTformer checkpoint. We do not hold it. If FFTformer
+>    stays, that is the checkpoint to port; the architecture is not what failed.
+> 3. On DPDD this same checkpoint scored **−0.86 dB** against defocus blur. Across two independent
+>    real-blur corpora it is at or below the untouched input.
+>
+> Full write-up: `mlxengine-image/corpus/realblur/RESULTS.md`.
+>
+> ⚠️ Still unmeasured and still worth the shoot: **smartphone** blur. RealBlur is a DSLR rig, and
+> *"Deblurring in the Wild"*'s failures were specific to phone pipelines. The protocol below stands
+> for that question — it is now a *phone-specific* study, not the primary acceptance gate.
+
+---
+
 ## The thing that determines everything: those are **full-reference** numbers
 
 `32.38 dB` is the PSNR of the *blurry input against a sharp ground truth*. The paper's whole finding is
