@@ -16,14 +16,30 @@ model helps real footage. These are separate questions and this doc is about the
 > 4.0, beam-splitter rig, real optical blur) was already public and licence-clean, and a first pass
 > on 300 of its 980 official test pairs — using the authors' own ECC-alignment protocol — says:
 >
-> | model | RealBlur-J PSNR | vs. doing nothing |
-> |---|---|---|
-> | *blurred input* | *27.55* | — |
-> | Restormer motionDeblur (GoPro-trained) | **28.84** | **+1.29** |
-> | **FFTformer GoPro — this package** | 27.52 | **−0.02** |
+> | model | RealBlur-J PSNR | vs. doing nothing (95% CI) | images improved |
+> |---|---|---|---|
+> | *blurred input* | *27.55* | — | — |
+> | Restormer motionDeblur (GoPro-trained) | **28.84** | **+1.29 ± 0.13** | **95%** |
+> | **FFTformer GoPro — this package** | 27.52 | **−0.02 ± 0.22** | 59% |
 >
 > **This package's checkpoint does not beat leaving the image alone.** Parity is immaculate and
 > irrelevant: the model was ported correctly and still does not help.
+>
+> 🔴 **And the mean understates it — the per-image distribution is the real problem.** This checkpoint
+> is not neutral, it is *unpredictable*:
+>
+> | | FFTformer (this) | Restormer motionDeblur |
+> |---|---|---|
+> | median Δ | +0.18 | +0.98 |
+> | std dev | **1.96** | 1.14 |
+> | worst case | **−18.70 dB** | −0.69 dB |
+> | images hurt | **41%** | 5% |
+> | hurt by > 1 dB | **18%** | **0%** |
+>
+> The median is *positive* — it helps slightly on most images, then loses badly enough on the rest
+> that the totals cancel (+180 dB gained vs −187 lost across 300 images). **Nearly a fifth of real
+> photographs are damaged by more than 1 dB.** A default has to be safe on the tail, not good on the
+> median; you cannot ship a button that usually helps a little and occasionally destroys the image.
 >
 > 🔑 **But "Deblurring in the Wild"'s explanation is too coarse.** It blames *GoPro training*.
 > Restormer is **also GoPro-trained** and transfers fine (+1.29 dB), so the mechanism is the model,
