@@ -160,7 +160,7 @@ public final class Downsample: Module, UnaryLayer, @unchecked Sendable {
     private let resample = Upsample(scaleFactor: 0.5, mode: .linear(alignCorners: false))
 
     public init(dim: Int) {
-        self._conv.wrappedValue = Conv2d(
+        self._conv.wrappedValue = WinogradFreeConv2d(
             inputChannels: dim, outputChannels: dim * 2, kernelSize: 3, padding: 1, bias: false)
     }
 
@@ -173,7 +173,7 @@ public final class Upsample2x: Module, UnaryLayer, @unchecked Sendable {
     private let resample = Upsample(scaleFactor: 2.0, mode: .linear(alignCorners: false))
 
     public init(dim: Int) {
-        self._conv.wrappedValue = Conv2d(
+        self._conv.wrappedValue = WinogradFreeConv2d(
             inputChannels: dim, outputChannels: dim / 2, kernelSize: 3, padding: 1, bias: false)
     }
 
@@ -297,6 +297,14 @@ public final class FFTformer: Module, @unchecked Sendable {
         self._output.wrappedValue = Conv2d(
             inputChannels: d, outputChannels: cfg.outChannels,
             kernelSize: 3, padding: 1, bias: b)
+        super.init()
+        if let route = FFTformerConvRoute.environmentOverride { convRoute = route }
+    }
+
+    /// Route for the in-window sampling convs (WinogradFreeConv2d.swift). Default `.conv3d`.
+    public var convRoute: FFTformerConvRoute {
+        get { modules().lazy.compactMap { ($0 as? WinogradFreeConv2d)?.route }.first ?? .conv3d }
+        set { for case let conv as WinogradFreeConv2d in modules() { conv.route = newValue } }
     }
 
     /// Forward on an already-padded NHWC tensor whose H and W are multiples of ``sizeMultiple``.

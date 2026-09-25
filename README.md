@@ -84,6 +84,33 @@ therefore globally correlated, which is not what handheld capture produces.
 **This port is parity-verified, not product-validated.** The acceptance study and the capture
 protocol it needs are in [REAL-BLUR-VALIDATION.md](REAL-BLUR-VALIDATION.md); it is not yet run.
 
+## GPU numerics: mlx's lossy Winograd conv2d window (2026-09-24)
+
+mlx's Metal `conv2d` takes a Winograd F(6×6,3×3) path when the conv is 3×3, stride 1, dilation 1,
+groups 1, C % 32 == 0, O % 32 == 0, C + O ≥ 256 and N·H·W ≥ 4096. On M5 that path loses about
+6.4e-3 relL2 per conv in fp32, because its inner GEMM runs TF32.
+
+Two FFTformer convs per 256² tile fall inside it: down2_3 (96→192 at H/4, full tiles only) and
+up3_2 (192→96 at H/2). `fftformer-gate` pins the CPU stream, so this never showed.
+
+Across most of an image the effect is tiny: relL2 1.25e-4 on a tiled 1024×768 motion-deblur. At the
+left image border, though, the network amplifies any perturbation about 100×. There the raw path
+reaches 6 levels after tile blending and 14 levels on the bare tile. Winograd is the whole cause:
+with `MLX_ENABLE_TF32=0` it is 1 level.
+
+Both sampling convs now take a route (`model.convRoute`, type `FFTformerConvRoute`). **Default
+`.conv3d`.**
+
+Measurements: bottom-left 256² tile of that crop, fp32, GPU against the CPU lane.
+
+| | Raw conv2d (Winograd) | conv3d route |
+|---|---|---|
+| Output | 8.8e-4 · **max 14 levels** | 1.7e-7 · ≤1 level (truncation) |
+| Tile time | 1127 ms | +25 ms |
+
+- Environment override: `FFTFORMER_CONV_ROUTE=winograd|conv3d|fp32Winograd`.
+- Gate: `FFT_LANE=1 swift test -c release -Xswiftc -enable-testing --filter GPULaneTests`.
+
 ## License
 
 Port code MIT. Upstream model and weights MIT (`kkkls`) — see [NOTICE](NOTICE).
