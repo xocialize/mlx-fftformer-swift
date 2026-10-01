@@ -61,11 +61,18 @@ final class GPULaneTests: XCTestCase {
         }
         let xIn = MLXArray(tile, [1, t, t, 3])
 
+        // Compile is off inside the CPU lane: mlx's compile cache keys on the C++ default stream,
+        // which withDefaultDevice leaves on the GPU. Traced here, MLXNN's compiled gelu would be
+        // replayed on the CPU inside the GPU runs below (or, if first traced on the GPU, on the GPU
+        // inside this lane) — GPU command buffers then wait on CPU-stream work and can trip the
+        // 5 s GPU watchdog (kIOGPUCommandBufferCallbackErrorTimeout).
+        compile(enable: false)
         let ref = Device.withDefaultDevice(.cpu) { () -> MLXArray in
             let r = clip(model(xIn), min: 0, max: 1)
             eval(r)
             return r
         }
+        compile(enable: true)
         Memory.clearCache()
         func run(_ route: FFTformerConvRoute) -> (MLXArray, Double) {
             model.convRoute = route
