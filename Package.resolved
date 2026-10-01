@@ -1,5 +1,5 @@
 {
-  "originHash" : "a4dafa8a76c080f03f596b5e466063b3337eef5a185a33a632f81290ed0442df",
+  "originHash" : "19744c5cb8bd7e64da45f2312f37d687abc77daa7d123d6288f143a28281ea3f",
   "pins" : [
     {
       "identity" : "eventsource",
@@ -17,6 +17,15 @@
       "state" : {
         "revision" : "f8cf5fb07264f3959bfa0d8dd84f80b48630c0e3",
         "version" : "0.38.0"
+      }
+    },
+    {
+      "identity" : "mlx-exact-conv-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/xocialize/mlx-exact-conv-swift",
+      "state" : {
+        "revision" : "26096a792c0c32eda48eb97bc4dadd56dc5c7cc0",
+        "version" : "0.1.0"
       }
     },
     {
