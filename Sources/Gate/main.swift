@@ -397,7 +397,7 @@ guard let mode = args.first else {
 // fp32 gates pin to the CPU stream: Apple-GPU fp32 accumulates ~8e-4 relative error per op, which
 // both masks real bugs and gets mistaken for them. (Quantized forwards must NOT do this — they
 // have no CPU path and silently grind for hours. Not applicable here: this model ships fp32.)
-if mode != "--bench" && mode != "--tile" { Device.setDefault(device: .cpu) }
+if mode != "--bench" && mode != "--tile" && mode != "--subtest" { Device.setDefault(device: Device(.cpu)) }
 
 switch mode {
 case "--s0":
@@ -405,7 +405,7 @@ case "--s0":
     gateS0(weightsPath: args[1])
 case "--subtest":
     // Isolate the 4-D subscript setter + accumulate pattern used by restoreTiled.
-    Device.setDefault(device: .gpu)
+    Device.setDefault(device: Device(.gpu))
     var a = MLXArray.zeros([1, 64, 64, 3], dtype: .float32)
     var wsum2 = MLXArray.zeros([1, 64, 64, 1], dtype: .float32)
     let tileArr = MLXArray.ones([1, 16, 16, 3], dtype: .float32)
@@ -421,12 +421,12 @@ case "--subtest":
     print("ALL SUBTESTS PASSED")
 case "--tile":
     guard args.count >= 2 else { fail("--tile needs a weights path") }
-    Device.setDefault(device: .gpu)
+    Device.setDefault(device: Device(.gpu))
     _ = gateTile(args[1])
 case "--bench":
     guard args.count >= 2 else { fail("--bench needs a weights path") }
     // Bench runs on the GPU (default stream) — it measures memory, not numerics.
-    Device.setDefault(device: .gpu)
+    Device.setDefault(device: Device(.gpu))
     gateBench(args[1], sizes: [(512, 512), (1920, 1080), (1214, 2160)])
 case "--s1a", "--s2", "--s3", "--s4", "--all":
     guard args.count >= 3 else { fail("\(mode) needs <goldens-dir> <weights>") }
