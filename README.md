@@ -9,6 +9,12 @@ Image Deblurring*, CVPR 2023. 16,560,474 parameters.
 
 Weights: [`mlx-community/FFTformer-GoPro-fp32`](https://huggingface.co/mlx-community/FFTformer-GoPro-fp32).
 
+**Engine-materialized weights read in place since 0.2.1 (AB-A-0112).** MLXEngine downloads the declared
+`weightSources` into its model store before `load()`; `load()` reads that copy (flat or snapshot layout) instead of
+fetching a second one through swift-transformers' `HubApi`. It also reads `<root>/models/<org>/<name>/`, where earlier
+versions downloaded, so existing installs aren't fetched again. `HubApi` remains only the backstop outside the engine
+(no store, or nothing materialized); an explicit `weightsURL` bypasses all of it.
+
 ## Products
 
 | Product | Depends on | Purpose |

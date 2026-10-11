@@ -76,6 +76,10 @@ extension FFTformerConfiguration: WeightSourcing {
     /// still report its source as missing and trigger a pointless download.
     public func missingWeightSources(storeRoot: URL?) -> [WeightSource] {
         if let weightsURL, FileManager.default.fileExists(atPath: weightsURL.path) { return [] }
-        return defaultMissingWeightSources(storeRoot: storeRoot)
+        // Also present: the copy load() downloaded through `HubApi` before 0.2.1 (`StoreWeights`), so existing installs
+        // aren't fetched again.
+        return defaultMissingWeightSources(storeRoot: storeRoot).filter {
+            !StoreWeights.installedByHubAPI(StoreWeights.weightsFile, repo: $0.repo, root: storeRoot)
+        }
     }
 }

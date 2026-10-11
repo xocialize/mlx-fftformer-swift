@@ -7,7 +7,6 @@ import UniformTypeIdentifiers
 import MLX
 import MLXToolKit
 import MLXProfiling
-import Hub
 import FFTformerMLXCore
 
 /// Errors at the FFTformer package boundary.
@@ -96,16 +95,9 @@ public final class FFTformerRestorePackage: ModelPackage {
             }
             url = explicit
         } else {
-            // Since contract 1.24 the engine materializes declared `weightSources` before load().
-            // This snapshot is the defensive path — it finds everything already present in the
-            // normal flow, and still works for a standalone (engine-less) consumer of the package.
-            let repo = configuration.variant.repo
-            let hub = configuration.modelsRootDirectory.map { HubApi(downloadBase: $0) } ?? HubApi()
-            let dir = try await hub.snapshot(from: Hub.Repo(id: repo),
-                                             matching: ["model.safetensors"]) { progress, speed in
-                WeightDownloadProgress.report(fraction: progress.fractionCompleted, bytesPerSecond: speed)
-            }
-            url = dir.appendingPathComponent("model.safetensors")
+            // The engine materialized the declared `weightSources` before load() (contract 1.24): `StoreWeights` reads
+            // its copy, and downloads through `HubApi` only for a caller outside the engine.
+            url = try await StoreWeights.resolve(repo: configuration.variant.repo, root: configuration.modelsRootDirectory)
         }
 
         let net = FFTformer()
